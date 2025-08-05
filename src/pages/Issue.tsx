@@ -49,7 +49,7 @@ const Issue = () => {
 
   const loadUserDID = async () => {
     try {
-      const did = await StorageService.getCurrentDID();
+      const did = await StorageService.getDID('current');
       if (did) {
         setUserDID(did.did);
       }
@@ -136,7 +136,7 @@ const Issue = () => {
       const signedCredential = await CredentialService.signCredential(credential, userDID);
 
       // Save to storage
-      await StorageService.saveCredential(signedCredential);
+      await StorageService.storeCredential(signedCredential);
 
       // Log to N8N if enabled
       await N8NService.logCredentialIssued(signedCredential, userDID);
@@ -209,7 +209,7 @@ const Issue = () => {
           );
 
           const signedCredential = await CredentialService.signCredential(credential, userDID);
-          await StorageService.saveCredential(signedCredential);
+          await StorageService.storeCredential(signedCredential);
           await N8NService.logCredentialIssued(signedCredential, userDID);
 
           successCount++;

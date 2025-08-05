@@ -244,4 +244,25 @@ export class StorageService {
     await db.credentials.clear();
     await db.activities.clear();
   }
+
+  // Get storage information
+  static async getStorageInfo(): Promise<{ used: number; quota: number }> {
+    try {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        return {
+          used: estimate.usage || 0,
+          quota: estimate.quota || 0
+        };
+      }
+      return { used: 0, quota: 0 };
+    } catch {
+      return { used: 0, quota: 0 };
+    }
+  }
+
+  // Clear all data
+  static async clearAll(): Promise<void> {
+    await this.clearAllData();
+  }
 }

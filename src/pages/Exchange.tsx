@@ -38,12 +38,17 @@ const Exchange = () => {
 
   const loadUserData = async () => {
     try {
-      const did = await StorageService.getCurrentDID();
+      const did = await StorageService.getDID('current');
       if (did) {
         setUserDID(did.did);
       }
       
-      const userCredentials = await StorageService.getAllCredentials();
+      const storedCredentials = await StorageService.getAllCredentials();
+      const userCredentials = await Promise.all(
+        storedCredentials.map(async (stored) => {
+          return await StorageService.getCredential(stored.vcId);
+        })
+      );
       setCredentials(userCredentials);
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -97,7 +102,7 @@ const Exchange = () => {
 
       // Save credentials to storage
       for (const credential of receivedCredentials) {
-        await StorageService.saveCredential(credential);
+        await StorageService.storeCredential(credential);
         await N8NService.logCredentialReceived(credential, userDID);
       }
 

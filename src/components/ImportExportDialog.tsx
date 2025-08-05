@@ -35,7 +35,7 @@ export const ImportExportDialog: React.FC<ImportExportDialogProps> = ({
       let filename: string;
 
       if (type === 'did') {
-        const didData = await StorageService.getDID();
+        const didData = await StorageService.getDID('current');
         if (!didData) {
           toast({
             title: "No DID Found",
@@ -56,7 +56,12 @@ export const ImportExportDialog: React.FC<ImportExportDialogProps> = ({
         // Log DID export
         await N8NService.logAction('did_exported', { didId: didData.did });
       } else {
-        const credentials = await StorageService.getCredentials();
+        const storedCredentials = await StorageService.getAllCredentials();
+        const credentials = await Promise.all(
+          storedCredentials.map(async (stored) => {
+            return await StorageService.getCredential(stored.vcId);
+          })
+        );
         if (credentials.length === 0) {
           toast({
             title: "No Credentials Found",
@@ -193,13 +198,13 @@ export const ImportExportDialog: React.FC<ImportExportDialogProps> = ({
       }
 
       // Check if DID already exists
-      const existingDID = await StorageService.getDID();
+      const existingDID = await StorageService.getDID('current');
       if (existingDID) {
         throw new Error('A DID already exists. Please export it first if you want to replace it.');
       }
 
       // Save the imported DID
-      await StorageService.storeDID(didData);
+      await StorageService.storeDID(didData.did, didData.privateKey, didData.publicKey, didData.address, didData.metadata);
 
       toast({
         title: "DID Imported Successfully",
@@ -254,7 +259,12 @@ export const ImportExportDialog: React.FC<ImportExportDialogProps> = ({
 
       if (importedCount > 0) {
         // Backup imported credentials to N8N
-        const newCredentials = await StorageService.getAllCredentials();
+        const allStoredCredentials = await StorageService.getAllCredentials();
+        const newCredentials = await Promise.all(
+          allStoredCredentials.map(async (stored) => {
+            return await StorageService.getCredential(stored.vcId);
+          })
+        );
         await N8NService.backupCredentials(newCredentials);
       }
 
