@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Send, FileText, Users, Copy, Download } from 'lucide-react';
+import { Plus, Send, FileText, Users, Copy, Download, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { CredentialService, CredentialRequest } from '@/lib/credential-service';
 import { StorageService } from '@/lib/storage';
 import { N8NService } from '@/lib/n8n-service';
@@ -20,6 +21,7 @@ const Issue = () => {
   const { toast } = useToast();
   const [userDID, setUserDID] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [walletUnlocked, setWalletUnlocked] = useState(false);
   
   // Single credential form
   const [singleForm, setSingleForm] = useState({
@@ -52,9 +54,13 @@ const Issue = () => {
       const did = await StorageService.getDID('current');
       if (did) {
         setUserDID(did.did);
+        setWalletUnlocked(true);
+      } else {
+        setWalletUnlocked(false);
       }
     } catch (error) {
       console.error('Failed to load user DID:', error);
+      setWalletUnlocked(false);
     }
   };
 
@@ -260,6 +266,35 @@ const Issue = () => {
       URL.revokeObjectURL(url);
     }
   };
+
+  // Check if wallet is unlocked
+  if (!walletUnlocked) {
+    return (
+      <WalletLayout>
+        <div className="container mx-auto p-6 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Navigation />
+            <div className="lg:col-span-3">
+              <WalletHeader 
+                title="Issue Credentials"
+                subtitle="Create and issue verifiable credentials to other DIDs"
+              />
+              <Card className="glass-card text-center p-8">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Wallet Locked</h3>
+                <p className="text-muted-foreground mb-4">
+                  Please unlock your wallet first to issue credentials.
+                </p>
+                <Button asChild>
+                  <Link to="/">Go to Identity Page</Link>
+                </Button>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </WalletLayout>
+    );
+  }
 
   return (
     <WalletLayout>
