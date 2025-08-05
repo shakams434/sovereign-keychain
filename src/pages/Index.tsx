@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// SSI Wallet Main Component - Build v1.1
 import { Navigation } from '@/components/Navigation';
 import { WalletLayout, WalletCard, WalletHeader, WalletSection } from '@/components/ui/wallet-layout';
 import { Button } from '@/components/ui/button';
