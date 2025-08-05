@@ -102,6 +102,14 @@ export class StorageService {
     };
   }
 
+  static async getCurrentDID(): Promise<{ did: string; privateKey: string; publicKey: string; address: string; metadata: any } | null> {
+    const allDIDs = await this.getAllDIDs();
+    if (allDIDs.length === 0) return null;
+    
+    // Return the first DID as current (you could implement logic to track current DID)
+    return await this.getDID(allDIDs[0].did);
+  }
+
   static async getAllDIDs(): Promise<StoredDID[]> {
     return await db.dids.toArray();
   }

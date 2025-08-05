@@ -53,7 +53,7 @@ const Issue = () => {
   const loadUserDID = async () => {
     console.log('[Issue] Loading user DID...');
     try {
-      const did = await StorageService.getDID('current');
+      const did = await StorageService.getCurrentDID();
       console.log('[Issue] DID loaded:', did);
       if (did) {
         setUserDID(did.did);
