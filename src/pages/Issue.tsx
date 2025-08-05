@@ -18,6 +18,7 @@ import { StorageService } from '@/lib/storage';
 import { N8NService } from '@/lib/n8n-service';
 
 const Issue = () => {
+  console.log('[Issue] Component rendering...');
   const { toast } = useToast();
   const [userDID, setUserDID] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,16 +51,20 @@ const Issue = () => {
   }, []);
 
   const loadUserDID = async () => {
+    console.log('[Issue] Loading user DID...');
     try {
       const did = await StorageService.getDID('current');
+      console.log('[Issue] DID loaded:', did);
       if (did) {
         setUserDID(did.did);
         setWalletUnlocked(true);
+        console.log('[Issue] Wallet unlocked with DID:', did.did);
       } else {
         setWalletUnlocked(false);
+        console.log('[Issue] No DID found, wallet locked');
       }
     } catch (error) {
-      console.error('Failed to load user DID:', error);
+      console.error('[Issue] Failed to load user DID:', error);
       setWalletUnlocked(false);
     }
   };
@@ -268,6 +273,7 @@ const Issue = () => {
   };
 
   // Check if wallet is unlocked
+  console.log('[Issue] Wallet unlocked status:', walletUnlocked, 'UserDID:', userDID);
   if (!walletUnlocked) {
     return (
       <WalletLayout>
