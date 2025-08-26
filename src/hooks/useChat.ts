@@ -85,13 +85,14 @@ export function useChat({ webhookUrl }: UseChatProps) {
   const sendMessageWithRetry = async (payload: any, retries = 3): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
       try {
-        // Send POST request directly without OPTIONS preflight
-        const response = await fetch(webhookUrl, {
+        // Use CORS proxy to bypass CORS restrictions
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(webhookUrl)}`;
+        
+        const response = await fetch(proxyUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          mode: 'cors',
           body: JSON.stringify(payload),
         });
 
