@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <ChatWidget webhookUrl="https://shakams434.app.n8n.cloud/webhook-test/9c97ec55-93e7-4d52-9f4f-3e6263b46937" />
+        <ChatWidget webhookUrl="https://shakams434.app.n8n.cloud/webhook/9c97ec55-93e7-4d52-9f4f-3e6263b46937" />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
