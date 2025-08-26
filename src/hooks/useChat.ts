@@ -83,37 +83,53 @@ export function useChat({ webhookUrl }: UseChatProps) {
   };
 
   const sendMessageWithRetry = async (payload: any, retries = 3): Promise<Response> => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        // Use CORS proxy to bypass CORS restrictions
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(webhookUrl)}`;
-        
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+    // CORS proxies to try in order
+    const corsProxies = [
+      '', // Direct attempt first
+      'https://corsproxy.io/?',
+      'https://api.allorigins.win/raw?url=',
+      'https://cors-anywhere.herokuapp.com/'
+    ];
 
-        if (response.ok) {
-          return response;
-        } else if (response.status >= 500 && i < retries - 1) {
-          // Retry on server errors
+    for (let proxyIndex = 0; proxyIndex < corsProxies.length; proxyIndex++) {
+      const proxy = corsProxies[proxyIndex];
+      const url = proxy ? `${proxy}${encodeURIComponent(webhookUrl)}` : webhookUrl;
+      
+      for (let i = 0; i < retries; i++) {
+        try {
+          console.log(`Attempting with ${proxy ? `proxy ${proxyIndex}` : 'direct connection'}, retry ${i + 1}`);
+          
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(proxy ? {} : { 'Access-Control-Allow-Origin': '*' })
+            },
+            mode: proxy ? 'cors' : 'no-cors',
+            body: JSON.stringify(payload),
+          });
+
+          if (response.ok) {
+            return response;
+          } else if (response.status >= 500 && i < retries - 1) {
+            // Retry on server errors
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            continue;
+          } else {
+            throw new Error(`Server error: ${response.status}`);
+          }
+        } catch (error) {
+          console.error(`Attempt ${i + 1} with ${proxy ? `proxy ${proxyIndex}` : 'direct'} failed:`, error);
+          if (i === retries - 1) {
+            // If this was the last retry for this proxy, break to try next proxy
+            break;
+          }
           await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-          continue;
-        } else {
-          throw new Error(`Server error: ${response.status}`);
         }
-      } catch (error) {
-        console.error(`Attempt ${i + 1} failed:`, error);
-        if (i === retries - 1) {
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
       }
     }
-    throw new Error('All retries failed');
+    
+    throw new Error('All CORS proxies and retries failed');
   };
 
   const sendMessage = async (messageContent: string) => {
