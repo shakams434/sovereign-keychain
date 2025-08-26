@@ -85,21 +85,13 @@ export function useChat({ webhookUrl }: UseChatProps) {
   const sendMessageWithRetry = async (payload: any, retries = 3): Promise<Response> => {
     for (let i = 0; i < retries; i++) {
       try {
-        // Send preflight OPTIONS request first
-        await fetch(webhookUrl, {
-          method: 'OPTIONS',
-          headers: {
-            'Access-Control-Request-Method': 'POST',
-            'Access-Control-Request-Headers': 'Content-Type',
-          },
-        });
-
-        // Send actual POST request
+        // Send POST request directly without OPTIONS preflight
         const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          mode: 'cors',
           body: JSON.stringify(payload),
         });
 
@@ -113,6 +105,7 @@ export function useChat({ webhookUrl }: UseChatProps) {
           throw new Error(`Server error: ${response.status}`);
         }
       } catch (error) {
+        console.error(`Attempt ${i + 1} failed:`, error);
         if (i === retries - 1) {
           throw error;
         }
